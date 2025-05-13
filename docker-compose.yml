@@ -1,0 +1,29 @@
+services:
+  db:
+    image: mysql:8.3
+    container_name: ea-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: elderly
+    volumes:
+      - db-data:/var/lib/mysql
+    dns: 1.1.1.1                # 保证容器能网络
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: ea-backend
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy  # 等待数据库服务健康检查通过
+    dns: 1.1.1.1
+
+volumes:
+  db-data:

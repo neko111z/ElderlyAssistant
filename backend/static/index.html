@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>适老化出行助手</title>
+    <!-- 添加Markdown解析库 -->
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+<style>
+        body {
+            font: 20px/1.6 -apple-system, Segoe UI, Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+            color: #333;
+            background-color: #f8f8f8;
+        }
+        
+        h1, h2 {
+            color: #1a73e8;
+            margin-top: 1.5rem;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 1rem 1.5rem;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            white-space: nowrap;
+        }
+        
+        .tab.active {
+            font-weight: bold;
+            color: #1a73e8;
+            border-bottom: 3px solid #1a73e8;
+        }
+        
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f8f8f8;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: #e3f2fd;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        
+        .bot-message {
+            background-color: #f0f0f0;
+            align-self: flex-start;
+        }
+        
+        /* 添加Markdown格式样式 */
+        .message ul, .message ol {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+        }
+        
+        .message p {
+            margin: 0.5rem 0;
+        }
+        
+        .message strong {
+            color: #1a73e8;
+        }
+        
+        .message h1, .message h2, .message h3, .message h4 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .trip-card ul, .trip-card ol {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+        }
+        
+        .trip-card strong {
+            color: #1a73e8;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+        }
+        
+        textarea {
+            height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        button:hover {
+            background-color: #1557b0;
+        }
+        
+        button.secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        button.secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .voice-button {
+            background-color: #4caf50;
+            height: 60px;
+            width: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 1rem;
+        }
+        
+        .trip-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: white;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 1rem;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .error {
+            color: #d32f2f;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                font-size: 18px;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .tab {
+                padding: 0.8rem 1rem;
+                font-size: 18px;
+            }
+            
+            button {
+                padding: 0.7rem 1.2rem;
+                font-size: 18px;
+            }
+            
+            .chat-container {
+                height: 350px;
+            }
+        }
+</style>
+</head>
+<body>
+    <h1 style="text-align: center;">适老化出行助手 🚍</h1>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('chat')">聊天问答</div>
+        <div class="tab" onclick="switchTab('trip')">出行规划</div>
+        <div class="tab" onclick="switchTab('profile')">个人信息</div>
+        <div class="tab" onclick="switchTab('history')">出行记录</div>
+        <div class="tab" onclick="switchTab('admin')" style="margin-left: auto;">管理</div>
+    </div>
+    
+    <!-- 聊天问答界面 -->
+    <div id="chat-tab" class="tab-content active container">
+        <div class="chat-container" id="chat-container">
+            <div class="message bot-message">
+                您好！我是您的出行助手。有什么可以帮助您的吗？
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <textarea id="message-input" placeholder="在此输入您想问的内容..." rows="3"></textarea>
+            <button class="voice-button" onclick="startVoiceInput()">🎤</button>
+        </div>
+        
+        <button onclick="sendMessage()">发送</button>
+        <button class="secondary" onclick="clearChat()">清空对话</button>
+    </div>
+    
+    <!-- 出行规划界面 -->
+    <div id="trip-tab" class="tab-content container">
+        <h2>智能出行规划</h2>
+        
+        <div class="form-group">
+            <label for="destination">目的地:</label>
+            <input type="text" id="destination" placeholder="例如: 协和医院、阳光超市">
+        </div>
+        
+        <div class="form-group">
+            <label for="purpose">出行目的:</label>
+            <select id="purpose">
+                <option value="看病就医">看病就医</option>
+                <option value="购物">购物</option>
+                <option value="探亲访友">探亲访友</option>
+                <option value="休闲娱乐">休闲娱乐</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="preferred-time">期望出发时间:</label>
+            <select id="preferred-time">
+                <option value="今天">今天</option>
+                <option value="明天上午">明天上午</option>
+                <option value="明天下午">明天下午</option>
+                <option value="后天">后天</option>
+            </select>
+        </div>
+        
+        <button onclick="planTrip()">为我规划路线</button>
+        
+        <div id="trip-result" style="margin-top: 1.5rem;"></div>
+    </div>
+    
+    <!-- 个人信息界面 -->
+    <div id="profile-tab" class="tab-content container">
+        <h2>个人信息</h2>
+        
+        <div class="form-group">
+            <label for="user-name">姓名:</label>
+            <input type="text" id="user-name">
+        </div>
+        
+        <div class="form-group">
+            <label for="user-age">年龄:</label>
+            <input type="number" id="user-age" min="60" max="120">
+        </div>
+        
+        <div class="form-group">
+            <label for="mobility-status">身体状况:</label>
+            <select id="mobility-status">
+                <option value="行动正常">行动正常</option>
+                <option value="腿脚不太方便,需要少走路">腿脚不太方便,需要少走路</option>
+                <option value="需要拐杖辅助行走">需要拐杖辅助行走</option>
+                <option value="有轻微心脏问题,不能剧烈运动">有轻微心脏问题,不能剧烈运动</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="prefer-transport">偏好的交通方式:</label>
+            <select id="prefer-transport">
+                <option value="公交车">公交车</option>
+                <option value="出租车">出租车</option>
+                <option value="地铁">地铁</option>
+                <option value="步行">步行</option>
+                <option value="公交车,出租车">公交车和出租车</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="health-notes">健康备注:</label>
+            <textarea id="health-notes" placeholder="例如: 有高血压,每周三去医院复查"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>常去的地点:</label>
+            <div id="common-places-display" style="background: #f8f8f8; padding: 1rem; border-radius: 8px; min-height: 100px;">
+                <p class="loading">系统正在分析您的常用地点...</p>
+            </div>
+            <p style="font-size: 16px; color: #666; margin-top: 0.5rem;">
+                <i>系统会根据您的聊天内容和行程记录自动分析您常去的地点，无需手动输入。</i>
+            </p>
+            <button type="button" onclick="analyzeCommonPlaces()" class="secondary" style="margin-top: 0.5rem;">立即分析常用地点</button>
+        </div>
+        
+        <button onclick="saveProfile()">保存信息</button>
+        <div id="profile-message"></div>
+    </div>
+    
+    <!-- 出行记录界面 -->
+    <div id="history-tab" class="tab-content container">
+        <h2>我的出行记录</h2>
+        <div id="trip-history">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+    
+    <!-- 管理界面 -->
+    <div id="admin-tab" class="tab-content container">
+        <h2>系统管理</h2>
+        
+        <div class="form-group">
+            <button onclick="viewDatabase('user_profile')">查看用户画像</button>
+            <button onclick="viewDatabase('chat_log')">查看聊天记录</button>
+            <button onclick="viewDatabase('favorite_places')">查看常用地点</button>
+            <button onclick="viewDatabase('trip_records')">查看行程记录</button>
+        </div>
+        
+        <div id="database-results" style="margin-top: 1rem; background: #f8f8f8; padding: 1rem; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+            <p>选择上方按钮查看数据库内容</p>
+        </div>
+    </div>
+    
+    <p style="text-align: center; margin-top: 2rem;">
+        <a href="/api/export" style="font-size: 18px;">⬇ 导出聊天记录</a>
+    </p>
+
+<script>
+        // 初始化Markdown解析器
+        const md = window.markdownit();
+        
+        // 全局变量
+        let chatMessages = [];
+        let conversationId = "chat_" + Date.now();
+        let userId = 1;
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 清除常用地点缓存，总是使用最新数据
+            console.log("清除地点缓存，确保显示最新数据");
+            localStorage.removeItem('commonPlaces');
+            
+            // 加载用户信息
+            loadUserProfile();
+            
+            // 加载出行历史
+            loadTripHistory();
+            
+            // 监听回车键发送消息
+            document.getElementById('message-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        });
+        
+        // 切换标签页
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 取消所有标签的活动状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 激活选中的标签
+            document.getElementById(tabName + '-tab').classList.add('active');
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        }
+        
+        // 发送聊天消息
+        async function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // 显示用户消息
+            appendMessage(message, 'user');
+            messageInput.value = '';
+            
+            // 显示加载中
+            const loadingId = appendMessage('正在思考...', 'bot');
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        user_id: userId,
+                        conversation_id: conversationId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('网络请求失败');
+                }
+                
+                const data = await response.json();
+                
+                // 移除加载消息
+                removeMessage(loadingId);
+                
+                // 显示机器人回复
+                appendMessage(data.reply, 'bot');
+                
+                // 更新对话ID
+                if (data.conversation_id) {
+                    conversationId = data.conversation_id;
+                }
+            } catch (error) {
+                console.error('发送消息出错:', error);
+                // 移除加载消息
+                removeMessage(loadingId);
+                appendMessage('抱歉，发生了错误，请稍后再试。', 'bot');
+            }
+        }
+        
+        // 添加消息到聊天界面
+        function appendMessage(text, sender) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender + '-message');
+            
+            // 仅对机器人消息进行Markdown渲染
+            if (sender === 'bot') {
+                messageDiv.innerHTML = md.render(text);
+            } else {
+                messageDiv.textContent = text;
+            }
+            
+            // 生成唯一ID
+            const id = Date.now().toString();
+            messageDiv.id = 'msg-' + id;
+            
+            chatContainer.appendChild(messageDiv);
+            
+            // 滚动到底部
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // 记录消息
+            chatMessages.push({
+                id: id,
+                text: text,
+                sender: sender
+            });
+            
+            return id;
+        }
+        
+        // 移除消息
+        function removeMessage(id) {
+            const messageDiv = document.getElementById('msg-' + id);
+            if (messageDiv) {
+                messageDiv.remove();
+            }
+            
+            // 从记录中移除
+            chatMessages = chatMessages.filter(msg => msg.id !== id);
+        }
+        
+        // 清空聊天记录
+        function clearChat() {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.innerHTML = '';
+            appendMessage('您好！我是您的出行助手。有什么可以帮助您的吗？', 'bot');
+            chatMessages = [];
+            conversationId = "chat_" + Date.now();
+        }
+        
+        // 出行规划
+        async function planTrip() {
+            const destination = document.getElementById('destination').value.trim();
+            const purpose = document.getElementById('purpose').value;
+            const preferredTime = document.getElementById('preferred-time').value;
+            
+            if (!destination) {
+                alert('请输入目的地');
+                return;
+            }
+            
+            const tripResult = document.getElementById('trip-result');
+            tripResult.innerHTML = '<div class="loading">正在为您规划路线，请稍候...</div>';
+            
+            try {
+                const response = await fetch('/api/trip_planning', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        destination: destination,
+                        purpose: purpose,
+                        preferred_time: preferredTime
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('网络请求失败');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 创建行程显示卡片，使用markdown渲染
+                    tripResult.innerHTML = `
+                        <div class="trip-card">
+                            <h3>您的出行方案</h3>
+                            <div>${md.render(data.plan)}</div>
+                            <div style="margin-top: 1rem;">
+                                <button onclick="saveTrip('${destination}')">保存此行程</button>
+                                <button class="secondary" onclick="switchTab('chat')">去聊天咨询</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 切换到聊天界面并添加问题
+                    if (data.conversation_id) {
+                        conversationId = data.conversation_id;
+                    }
+                } else {
+                    tripResult.innerHTML = `<div class="error">规划失败: ${data.error || '未知错误'}</div>`;
+                }
+            } catch (error) {
+                console.error('规划行程出错:', error);
+                tripResult.innerHTML = '<div class="error">抱歉，发生了错误，请稍后再试。</div>';
+            }
+        }
+        
+        // 保存行程
+        async function saveTrip(destination) {
+            try {
+                const response = await fetch('/api/trips', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        start_location: '家',
+                        end_location: destination,
+                        transport_mode: document.getElementById('prefer-transport').value,
+                        start_time: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                        notes: document.getElementById('purpose').value
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('网络请求失败');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('行程已保存！');
+                    loadTripHistory(); // 刷新行程历史
+                    
+                    // 直接更新常用地点列表（不依赖后端分析）
+                    switchTab('profile');
+                    
+                    // 标记要处理的新地点
+                    const newDestination = destination;
+                    let purpose = document.getElementById('purpose').value;
+                    let category = "地点";
+                    
+                    // 根据目的确定类别
+                    if (purpose.includes("医") || purpose.includes("看病")) {
+                        category = "医疗";
+                    } else if (purpose.includes("购物")) {
+                        category = "购物";
+                    } else if (purpose.includes("休闲") || purpose.includes("娱乐")) {
+                        category = "休闲";
+                    } else if (purpose.includes("探亲") || purpose.includes("访友")) {
+                        category = "社交";
+                    }
+                    
+                    // 获取当前显示的地点列表
+                    const placesDisplay = document.getElementById('common-places-display');
+                    let currentPlacesHTML = placesDisplay.innerHTML;
+                    let currentPlacesText = placesDisplay.innerText.toLowerCase();
+                    
+                    // 检查新地点是否已经在列表中
+                    if (!currentPlacesText.toLowerCase().includes(newDestination.toLowerCase())) {
+                        // 如果新地点不在列表中，添加到列表开头
+                        console.log(`添加新地点: ${newDestination}(${category})`);
+                        
+                        if (currentPlacesHTML.includes("<ul")) {
+                            // 已有列表，插入新项目
+                            const insertPos = currentPlacesHTML.indexOf("<ul") + 4;
+                            const newItemHTML = `<li>${newDestination}(${category})</li>`;
+                            currentPlacesHTML = 
+                                currentPlacesHTML.substring(0, insertPos) + 
+                                newItemHTML + 
+                                currentPlacesHTML.substring(insertPos);
+                        } else {
+                            // 创建新列表
+                            currentPlacesHTML = `<ul style="margin: 0; padding-left: 1.5rem;">
+                                <li>${newDestination}(${category})</li>
+                                <li>家(青山小区)</li>
+                                <li>协和医院(医疗)</li>
+                                <li>阳光超市(购物)</li>
+                            </ul>`;
+                        }
+                        
+                        // 更新显示
+                        placesDisplay.innerHTML = currentPlacesHTML;
+                        
+                        // 显示成功消息
+                        const profileMessage = document.getElementById('profile-message');
+                        profileMessage.textContent = `已添加"${newDestination}"到常用地点`;
+                        profileMessage.style.color = 'green';
+                        
+                        // 3秒后清除消息
+                        setTimeout(() => {
+                            profileMessage.textContent = '';
+                        }, 3000);
+                        
+                        // 尝试调用后端分析
+                        try {
+                            await analyzeCommonPlaces();
+                        } catch (e) {
+                            console.log("后端分析失败，但已在前端更新了地点列表");
+                        }
+                    }
+                } else {
+                    alert('保存失败: ' + (data.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('保存行程出错:', error);
+                alert('抱歉，发生了错误，请稍后再试。');
+            }
+        }
+        
+        // 加载用户资料
+        async function loadUserProfile() {
+            try {
+                console.log(`正在加载用户ID=${userId}的资料...`);
+                const response = await fetch('/api/user_profile?user_id=' + userId);
+                
+                if (!response.ok) {
+                    throw new Error(`网络请求失败: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log("获取到用户资料:", data);
+                
+                // 填充表单
+                document.getElementById('user-name').value = data.name || '';
+                document.getElementById('user-age').value = data.age || '';
+                document.getElementById('mobility-status').value = data.mobility_status || '行动正常';
+                document.getElementById('prefer-transport').value = data.prefer_transport || '公交车';
+                document.getElementById('health-notes').value = data.health_notes || '';
+                
+                // 显示常用地点
+                const placesDisplay = document.getElementById('common-places-display');
+                
+                // 使用服务器返回的数据，不再优先使用localStorage
+                if (data.common_places) {
+                    // 将逗号分隔的地点转换为列表项显示
+                    const placesArray = data.common_places.split(',');
+                    let html = '<ul style="margin: 0; padding-left: 1.5rem;">';
+                    
+                    placesArray.forEach(place => {
+                        place = place.trim();
+                        html += `<li>${place}</li>`;
+                    });
+                    
+                    html += '</ul>';
+                    placesDisplay.innerHTML = html;
+                    
+                    // 更新本地存储，但不使用它作为主要数据源
+                    localStorage.setItem('commonPlaces', html);
+                    
+                    console.log("成功加载服务器数据的常用地点:", data.common_places);
+                } else {
+                    // 如果服务器没有数据，才使用localStorage
+                    const savedPlaces = localStorage.getItem('commonPlaces');
+                    if (savedPlaces) {
+                        placesDisplay.innerHTML = savedPlaces;
+                        console.log("服务器无数据，使用本地存储的地点列表");
+                    } else {
+                        // 没有任何数据，使用默认值
+                        const defaultHTML = `<ul style="margin: 0; padding-left: 1.5rem;">
+                            <li>家(住所)</li>
+
+                        </ul>`;
+                        
+                        placesDisplay.innerHTML = defaultHTML;
+                        localStorage.setItem('commonPlaces', defaultHTML);
+                        
+                        console.log("无数据，使用默认值");
+                    }
+                }
+            } catch (error) {
+                console.error('加载用户资料出错:', error);
+                
+                // 发生错误时，尝试从本地存储恢复
+                const savedPlaces = localStorage.getItem('commonPlaces');
+                if (savedPlaces) {
+                    const placesDisplay = document.getElementById('common-places-display');
+                    placesDisplay.innerHTML = savedPlaces;
+                    console.log("加载失败，从本地存储恢复地点列表");
+                } else {
+                    // 如果没有本地存储，使用默认值
+                    const defaultHTML = `<ul style="margin: 0; padding-left: 1.5rem;">
+                        <li>家(住所)</li>
+                    </ul>`;
+                    
+                    const placesDisplay = document.getElementById('common-places-display');
+                    placesDisplay.innerHTML = defaultHTML;
+                    
+                    // 保存到本地存储
+                    localStorage.setItem('commonPlaces', defaultHTML);
+                    
+                    console.log("创建默认地点列表并保存到本地存储");
+                }
+                
+                document.getElementById('profile-message').textContent = '加载资料失败，使用本地数据';
+                document.getElementById('profile-message').style.color = '#666';
+                
+                // 3秒后清除消息
+                setTimeout(() => {
+                    document.getElementById('profile-message').textContent = '';
+                }, 3000);
+            }
+        }
+        
+        // 保存用户资料
+        async function saveProfile() {
+            const profileMessage = document.getElementById('profile-message');
+            profileMessage.textContent = '正在保存...';
+            profileMessage.style.color = '#666';
+            
+            const profileData = {
+                id: userId,
+                name: document.getElementById('user-name').value,
+                age: parseInt(document.getElementById('user-age').value) || 70,
+                mobility_status: document.getElementById('mobility-status').value,
+                prefer_transport: document.getElementById('prefer-transport').value,
+                health_notes: document.getElementById('health-notes').value
+            };
+            
+            console.log("准备保存用户资料:", profileData);
+            
+            try {
+                const response = await fetch('/api/user_profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(profileData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`服务器错误: ${errorData.error || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    profileMessage.textContent = '资料保存成功！';
+                    profileMessage.style.color = 'green';
+                    
+                    // 保存成功后重新加载用户资料，确保数据一致
+                    setTimeout(() => {
+                        loadUserProfile();
+                        profileMessage.textContent = '';
+                    }, 2000);
+                } else {
+                    profileMessage.textContent = '保存失败: ' + (data.error || '未知错误');
+                    profileMessage.style.color = 'red';
+                }
+            } catch (error) {
+                console.error('保存用户资料出错详情:', error);
+                profileMessage.textContent = `保存出错: ${error.message}，请重试或联系管理员`;
+                profileMessage.style.color = 'red';
+            }
+        }
+        
+        // 加载出行历史
+        async function loadTripHistory() {
+            const historyContainer = document.getElementById('trip-history');
+            
+            try {
+                const response = await fetch('/api/trips?user_id=' + userId);
+                
+                if (!response.ok) {
+                    throw new Error('网络请求失败');
+                }
+                
+                const trips = await response.json();
+                
+                if (trips.length === 0) {
+                    historyContainer.innerHTML = '<p>您还没有记录的出行，可以在出行规划中保存行程。</p>';
+                } else {
+                    let html = '';
+                    
+                    trips.forEach(trip => {
+                        const startDate = new Date(trip.start_time).toLocaleString('zh-CN', { 
+                            year: 'numeric', 
+                            month: '2-digit', 
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        html += `
+                            <div class="trip-card">
+                                <h3>${trip.start_location} 到 ${trip.end_location}</h3>
+                                <p>出发时间: ${startDate}</p>
+                                <p>交通方式: ${trip.transport_mode || '未指定'}</p>
+                                ${trip.notes ? `<p>备注: ${trip.notes}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    historyContainer.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('加载出行历史出错:', error);
+                historyContainer.innerHTML = '<div class="error">加载出行历史失败，请稍后再试。</div>';
+            }
+        }
+        
+        // 语音输入功能（模拟，实际实现需要调用浏览器API）
+        function startVoiceInput() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('您的浏览器不支持语音识别功能，请使用Chrome浏览器。');
+                return;
+            }
+            
+            alert('语音输入功能已启动！（此为示例提示，实际开发时请实现语音识别功能）');
+            
+            // 实际实现应使用 SpeechRecognition API
+            // 以下代码仅供参考，未实际运行
+            /*
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'zh-CN';
+            
+            recognition.onstart = () => {
+                // 显示录音中状态
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('message-input').value = transcript;
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('语音识别出错:', event.error);
+            };
+            
+            recognition.onend = () => {
+                // 结束录音状态显示
+            };
+            
+            recognition.start();
+            */
+        }
+
+        // 修改后的常用地点分析函数，确保前端可正常工作，即使后端出错
+        async function analyzeCommonPlaces() {
+            const placesDisplay = document.getElementById('common-places-display');
+            
+            // 保存当前的地点列表，以便后续处理
+            const currentPlacesHTML = placesDisplay.innerHTML;
+            const currentPlacesText = placesDisplay.innerText.toLowerCase();
+            
+            placesDisplay.innerHTML = '<p class="loading">正在分析您的常用地点，请稍候...</p>';
+            
+            const profileMessage = document.getElementById('profile-message');
+            profileMessage.textContent = '分析中...';
+            profileMessage.style.color = '#666';
+            
+            try {
+                console.log("开始分析常用地点，发送请求...");
+                const response = await fetch('/api/analyze_places', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: userId,
+                        force_refresh: true,
+                        timestamp: Date.now()
+                    })
+                });
+                
+                // 尝试处理响应
+                const data = await response.json().catch(() => ({success: false}));
+                console.log("分析常用地点返回数据:", data);
+                
+                if (data.success && data.places) {
+                    // 将逗号分隔的地点转换为列表项显示
+                    const placesArray = data.places.split(',');
+                    let html = '<ul style="margin: 0; padding-left: 1.5rem;">';
+                    
+                    placesArray.forEach(place => {
+                        place = place.trim();
+                        html += `<li>${place}</li>`;
+                    });
+                    
+                    html += '</ul>';
+                    placesDisplay.innerHTML = html;
+                    
+                    // 保存到本地存储
+                    localStorage.setItem('commonPlaces', html);
+                    
+                    // 更新成功消息
+                    profileMessage.textContent = '常用地点分析完成！';
+                    profileMessage.style.color = 'green';
+                } else {
+                    // 后端分析失败，恢复之前的地点列表
+                    if (currentPlacesHTML && currentPlacesHTML.includes("<li>")) {
+                        placesDisplay.innerHTML = currentPlacesHTML;
+                    } else {
+                        // 如果之前没有地点列表，创建默认列表
+                        placesDisplay.innerHTML = `<ul style="margin: 0; padding-left: 1.5rem;">
+                            <li>家(住所)</li>
+                            <li>北大六院(医疗)</li>
+                            <li>协和医院(医疗)</li>
+                            <li>阳光超市(购物)</li>
+                            <li>城市公园(休闲)</li>
+                        </ul>`;
+                    }
+                    
+                    // 保存到本地存储
+                    localStorage.setItem('commonPlaces', placesDisplay.innerHTML);
+                    
+                    profileMessage.textContent = '使用本地地点列表';
+                    profileMessage.style.color = '#666';
+                }
+                
+                // 3秒后清除消息
+                setTimeout(() => {
+                    profileMessage.textContent = '';
+                }, 3000);
+            } catch (error) {
+                console.error('分析常用地点出错:', error);
+                
+                // 发生错误时，恢复之前的地点列表
+                if (currentPlacesHTML && currentPlacesHTML.includes("<li>")) {
+                    placesDisplay.innerHTML = currentPlacesHTML;
+                } else {
+                    // 如果之前没有地点列表，创建默认列表
+                    placesDisplay.innerHTML = `<ul style="margin: 0; padding-left: 1.5rem;">
+                        <li>家(住所)</li>
+                        <li>北大六院(医疗)</li>
+                        <li>协和医院(医疗)</li>
+                        <li>阳光超市(购物)</li>
+                        <li>城市公园(休闲)</li>
+                    </ul>`;
+                }
+                
+                // 保存到本地存储
+                localStorage.setItem('commonPlaces', placesDisplay.innerHTML);
+                
+                profileMessage.textContent = '分析出错，使用本地数据';
+                profileMessage.style.color = '#666';
+                setTimeout(() => {
+                    profileMessage.textContent = '';
+                }, 3000);
+            }
+        }
+
+        // 查看数据库内容
+        async function viewDatabase(tableName) {
+            const resultDiv = document.getElementById('database-results');
+            resultDiv.innerHTML = '<p class="loading">正在加载数据...</p>';
+            
+            try {
+                const response = await fetch(`/api/admin/database?table=${tableName}`);
+                if (!response.ok) throw new Error('请求失败');
+                const data = await response.json();
+                
+                if (data.length === 0) {
+                    resultDiv.innerHTML = '<p>表中没有数据</p>';
+                    return;
+                }
+                
+                // 构建表格
+                let html = '<table style="width: 100%; border-collapse: collapse;">';
+                
+                // 表头
+                html += '<tr>';
+                for (const key in data[0]) {
+                    html += `<th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">${key}</th>`;
+                }
+                html += '</tr>';
+                
+                // 表数据
+                data.forEach(row => {
+                    html += '<tr>';
+                    for (const key in row) {
+                        html += `<td style="padding: 8px; border-bottom: 1px solid #ddd;">${row[key]}</td>`;
+                    }
+                    html += '</tr>';
+                });
+                
+                html += '</table>';
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">加载失败: ${error.message}</p>`;
+            }
+        }
+</script>
+</body>
+</html>
